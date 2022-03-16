@@ -1,0 +1,157 @@
+---
+title: "Assignment1"
+author: "2019150445 BaekRok"
+date: '2020 9 21 '
+output: pdf_document
+---
+
+# 1.
+
+### (a)
+
+```{r}
+X<-c(2,3,3,3,4,5)
+Y<-c(0,1,1,2,2,3)
+lm(Y~X)
+```
+
+
+### (b)
+
+```{r}
+lm(Y~X-1)
+```
+
+
+
+# 2.
+
+### (a)
+
+```{r}
+EDU<-c(12,20,20,14,16,16,18,14,12,16,15,10)
+Income<-c(35,80,78,45,57,65,59,63,57,66,73,23)
+library(dplyr)
+lm(Income~EDU) %>% summary()
+```
+There does appear to be a positive linear relationship between EDU and Income. 
+By a simple linear regression model, income increases by 4.525(1000USD) when one unit(1 year) of EDU increase.
+
+
+### (b)
+
+```{r}
+plot(Income~EDU)
+lm(Income~EDU) %>% abline()
+```
+
+The equation of the regression line is 
+$$ \text{(Income in 1000 USD)}= -10.585 + 4.525 \times \text{(EDU in years).} $$
+
+
+### (c)
+
+```{r}
+cov(EDU,Income)
+sd(EDU)
+sd(Income)
+```
+
+
+
+# 3
+
+
+### (a)
+
+```{r}
+Length<-c(5.1,4.9,4.7,4.6,5.0,5.4,4.6,5.0,4.4,4.9,5.4,4.8)
+Width<-c(3.5,3.0,3.2,3.1,3.6,3.9,3.4,3.4,2.9,3.1,3.7,3.4)
+mean(Length)
+mean(Width)
+cor(Length,Width)
+```
+Correlation between Length and Width is 0.8081269, which is positive and close to 1. So we can say Length and Width have positive and strong linear relationship.
+
+
+### (b)
+
+```{r}
+lm(Width~Length)
+```
+The fitted simple linear regression line is 
+$$ \text{Width} = -0.5135 + 0.7885 \times \text{Length}$$
+Estimated Intercept of the regression line is -0.5135, and slope of the regression line is 0.7885. That is, when one unit of Length increases, on average Width increases by 0.7885
+
+
+### (c)
+
+```{r}
+lm(Width~Length) %>% summary() %>% .$sigma
+```
+
+
+### (d)
+
+
+We have to test 
+$$ H_0:\beta_1=0  \text{   vs   } H_1:\beta_1 \neq 0 $$
+In order to do this, we have to compute p-value.
+
+```{r}
+lm(Width~Length) %>% summary() #To find p-value.
+```
+p-value is 0.0147 which is less than 0.01. So we can say there is linear relationship between Length and Width and thus We can reject $H_0$. 
+
+Or we can compute p-value through $\hat{\beta_1}$ & $s.e.(\hat{\beta_1})$. 
+ $$t=0.7885/0.1817=4.339$$
+ And thus,
+```{r}
+2*(1-pt(4.339,length(Length)-2))
+```
+
+
+### (e)
+
+We can compute 95% confidence interval when $x_0=4.8$ by this code.
+```{r}
+lm(Width~Length) %>% predict(interval="confidence",newdata=data.frame(Length=4.8))
+```
+
+
+Or we can compute CI by hand.
+
+
+The SE of $\hat{\mu}_0$:$$ s.e.(\hat{\mu}_0)= \hat{\sigma}\sqrt{(1/n +(x_0-\bar{x})^2/\sum(x_i-\bar{x}^2)}$$
+The confidence interval for mean response is
+$$ \hat{\mu}_0 \pm t_{(n-2,\alpha/2)}\times s.e.(\hat{\mu}_0)$$
+
+Then we can estimated mean Width when Length($x_0$)=4.8
+$$ \hat{\mu}_0= -0.5135+0.7885\times4.8=3.271 $$
+And from above equation, $$s.e.(\hat{\mu}_0)=0.0565$$
+We have to construct 95% confidence interval, which means $\alpha=0.05$. 
+
+Thus, 95% confidence interval is 
+$$(3.271\pm t_{12-2,0.025} \times 0.0565)=(3.271 \pm 2.228\times 0.056)=(3.145,3.397)$$
+
+
+### (f)
+
+
+We can compute 95% prediction when $x_0=4.8$interval by this code.
+```{r}
+lm(Width~Length) %>% predict(interval='predict',newdata=data.frame(Length=4.8))
+```
+
+
+Or by hand.
+
+Note that $$ \hat{y}_0= \hat{\mu}_0 =3.271$$
+In prediction interval, $$s.e.(\hat{y}_0)=\hat{\sigma}\sqrt{1+1/n+(x_0-\bar{x})^2/\sum(x_i-\bar{x})^2} $$
+Since $x_0=4.8$, $s.e.(\hat{y}_0)=0.1937$.
+
+The (1-$\alpha$) prediction value for the predicted value $y_0$ at $x=x_0$ is 
+$$ \hat{y}_0\pm t_{n-2,\alpha/2}\times s.e.(\hat{y_0})$$
+Then 95% prediction interval is 
+$$ (3.271\pm 2.228\times 0.1937)=(2.839,3.703)$$
+

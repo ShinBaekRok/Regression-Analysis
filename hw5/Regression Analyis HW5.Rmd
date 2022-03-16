@@ -1,0 +1,74 @@
+---
+title: "HW5"
+author: "2019150445/Shin Baek Rok"
+date: '2020 12 13 '
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(car)
+```
+
+```{r}
+#load data
+raw.data<-read.table('https://learn-ap-northeast-2-prod-fleet01-xythos.content.blackboardcdn.com/5d3914f35b4ad/16895628?X-Blackboard-Expiration=1608055200000&X-Blackboard-Signature=h4XLZcrXDzsa7jITBbZ8CCM5ZedTjMCWpH%2B5Gs4gSYA%3D&X-Blackboard-Client-Id=329889&response-cache-control=private%2C%20max-age%3D21600&response-content-disposition=inline%3B%20filename%2A%3DUTF-8%27%27Gasoline.txt&response-content-type=text%2Fplain&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20201215T120000Z&X-Amz-SignedHeaders=host&X-Amz-Expires=21600&X-Amz-Credential=AKIAZH6WM4PLRAIZCZRQ%2F20201215%2Fap-northeast-2%2Fs3%2Faws4_request&X-Amz-Signature=f62b9c216235d77c3f7c7384ea27920350374acb1503cf124cb2459d6618e69a',header=T)
+glimpse(raw.data)
+```
+1.
+```{r}
+cor(raw.data[,-1])
+plot(raw.data[,-1])
+```
+When we take a look at pairwise plot, we can find clear evidence of multicollinearity 
+in X1&X2,X1&X3,X2&X3,X1&X5,X1&X8,..etc.
+Also in corr matrix, the absolute value of elements are big enough.
+
+
+2.
+```{r}
+cor.mat<-cor(raw.data[,-1])
+eigenvalue<-eigen(cor.mat)$values
+eigenvalue
+eigenvalue[1]/sum(eigenvalue)
+sum(eigenvalue[1:2])/sum(eigenvalue)
+sum(eigenvalue[1:3])/sum(eigenvalue)
+#We need three principle components to retain 85% of the information
+```
+
+
+3.
+```{r}
+lm(Y~.,data=raw.data) %>% car::vif()>10
+```
+When we take VIF=10 as criteria, we can say X1,X2,X3,X7,X8,X10 are affected by the presence of multicollinearity.
+
+
+4.
+```{r}
+eigenvector<-eigen(cor.mat)$vector
+U1<-as.matrix(eigenvector[,1])
+U2<-as.matrix(eigenvector[,2])
+X<-as.matrix(scale(raw.data[,-1]))
+Z1<-X %*% U1
+Z2<-X %*% U2
+cbind(Z1,Z2) %>% head(3)#PC scores
+```
+
+
+5.
+```{r}
+null=lm(Y~X6,data=raw.data)#Include X6
+full=lm(Y~X1+X2+X3+X4+X5+X6+X7+X8+X9+X10, data=raw.data)#Exclude X11
+step(null,scope=list(lower=null,upper=full),direction='forward',k=log(nrow(raw.data)))
+```
+The fitted regression equation is
+$$ \hat{Y}=32.74244\quad -\quad 0.05209\times X1\quad +\quad 0.85052\times X6$$
+
+6.
+```{r}
+Xi<-raw.data[,-1]
+Y<-raw.data[,1]
+leaps::regsubsets(Y~.,data=data.frame(Y,Xi),nbest=5,force.in=6,force.out=11) %>% plot(scale='adjr2')
+```
+X6,X5,X8,X10 are contained in my best model.

@@ -1,0 +1,112 @@
+---
+title: "Regression Analysis HW4"
+
+date: '2020 12 6 '
+output: pdf_document
+---
+```{r setup, include=FALSE}
+library(tidyverse)
+```
+
+# 1.
+
+a)
+```{r}
+load("C:/Users/admin/Downloads/dataQ1.RData")
+fitted<-lm(Y~x1)
+fitted
+```
+The fitted regression equation is
+$$ \hat{Y}=40652.81-515.93\times x1 $$
+
+
+b)
+```{r}
+summary(fitted)
+```
+In the summary above, we can find $$R^2=0.9734$$
+
+
+c)
+
+```{r}
+par(mfrow=c(2,2))
+plot(fitted)
+```
+We can see the pattern in first residual plot. It means the errors are autocorrelated.
+
+
+d)
+
+$$ H_0:\rho=0,\quad H_1:\rho\neq0$$
+
+```{r}
+fitted$res %>% sign() %>% factor() %>% tseries::runs.test()
+```
+The test statistic is -6.149 and the p-value=7.799e-10 which means it is significant under $\alpha=0.01$
+Therefore we can reject $H_0$ and we can conclude the errors are autocorrelated.
+
+
+
+e)
+$$H_0: \rho=0 \quad vs \quad H_1:\rho>0$$
+
+```{r}
+lmtest::dwtest(fitted)
+```
+The test statistic is 0.11683 and the p-value<2.2e-16 and it means that it is significant under $\alpha=0.01$ 
+Therefore we can reject $H_0$ and we can conclude the errors are positively autocorrelated.
+
+
+
+
+# 2.
+
+
+a)
+
+```{r}
+load("C:/Users/admin/Downloads/dataQ2.RData")
+fitted_1<-lm(y~n)
+fitted_1
+```
+The fitted regression equation is 
+$$ \hat{Y}=-1.805+1.061\times n$$
+
+
+
+b)
+```{r}
+plot(fitted_1$fit, scale(fitted_1$res))
+```
+In above plot, we can see the errors have heteroscedasticity and it violates the assumption of constancy of error variance.
+
+c)
+```{r}
+fitted_2<-lm(sqrt(y)~n)
+fitted_2
+```
+
+
+d)
+
+The fitted regression model is
+$$ \hat{\sqrt{Y}}=2.61275+0.08152\times n$$
+
+e)
+```{r}
+predict(fitted_2,newdata=data.frame(n=40))^2
+```
+
+
+f)
+```{r}
+n_sq<-n^2
+fitted_3<-lm(log(y)~n+n_sq)
+summary(fitted_3)
+```
+
+
+g)
+The fitted regression model in terms of the original scale is
+$$\hat{Y}=exp(1.5104037+0.0674594\times n -0.0003820\times n^2)$$
